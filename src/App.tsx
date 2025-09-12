@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // --- TYPE DEFINITIONS ---
@@ -107,10 +107,10 @@ const NavButton = ({ children, onClick, isActive }: { children: React.ReactNode,
 const SummaryPage = () => { 
     const MetricCard = ({ title, value, description, icon }: { title: string, value: string, description: string, icon: string }) => (
         <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center transform hover:scale-105 transition-transform duration-300">
-            <div className="text-5xl mb-3">{icon}</div>
-            <h3 className="text-xl font-bold text-gray-700">{title}</h3>
-            <p className="text-4xl font-extrabold text-blue-900 my-2">{value}</p>
-            <p className="text-gray-500">{description}</p>
+            <div className="text-4xl md:text-5xl mb-3">{icon}</div>
+            <h3 className="text-lg md:text-xl font-bold text-gray-700">{title}</h3>
+            <p className="text-3xl md:text-4xl font-extrabold text-blue-900 my-2">{value}</p>
+            <p className="text-sm md:text-base text-gray-500">{description}</p>
         </div>
     );
 
@@ -118,43 +118,42 @@ const SummaryPage = () => {
         <>
             <header className="text-center mb-10">
                 <h1 className="text-4xl sm:text-5xl font-extrabold text-blue-900 tracking-tight">Ringkasan Eksekutif</h1>
-                <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">Fokus pada DJI Agras T100 untuk profitabilitas dan pengembalian investasi yang superior.</p>
+                <p className="mt-4 text-md md:text-lg text-gray-600 max-w-3xl mx-auto">Fokus pada DJI Agras T100 untuk profitabilitas dan pengembalian investasi yang superior.</p>
             </header>
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
                 <MetricCard title="Payback Period T100" value="< 3 Bulan" description="Potensi pengembalian modal investasi yang sangat cepat." icon="⏱️" />
                 <MetricCard title="Profitabilitas T100" value={formatCurrency(T100_DATA.profitKotor, true)} description="Estimasi profit kotor per unit setiap bulan." icon="💰" />
                 <MetricCard title="Produktivitas T100" value={`${T100_DATA.produktivitasHaPerBulan} Ha`} description="Target cakupan area per unit setiap bulan." icon="🌿" />
             </section>
-            <section className="bg-white p-6 rounded-xl shadow-lg mb-12">
-                <h2 className="text-2xl font-bold text-blue-900 text-center mb-6">Perbandingan Kinerja Bulanan (Per Unit)</h2>
-                <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={comparisonData} margin={{ top: 5, right: 20, left: 50, bottom: 5 }}>
+            <section className="bg-white p-4 md:p-6 rounded-xl shadow-lg mb-12">
+                <h2 className="text-xl md:text-2xl font-bold text-blue-900 text-center mb-6">Perbandingan Kinerja Bulanan (Per Unit)</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={comparisonData} margin={{ top: 5, right: 5, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                        <XAxis dataKey="name" tick={{ fill: '#424242' }} />
-                        <YAxis tickFormatter={(val) => formatCurrency(val, true)} tick={{ fill: '#424242' }} />
+                        <XAxis dataKey="name" tick={{ fill: '#424242', fontSize: 12 }} />
+                        <YAxis tickFormatter={(val) => formatCurrency(val, true)} tick={{ fill: '#424242', fontSize: 12 }} />
                         <Tooltip formatter={(value: number) => formatCurrency(value)} cursor={{ fill: 'rgba(230, 230, 230, 0.5)' }} />
-                        <Legend />
+                        <Legend wrapperStyle={{ fontSize: '14px' }} />
                         <Bar dataKey="Target Omset" fill={BAR_COLORS['Target Omset']} />
                         <Bar dataKey="Biaya Operasional" fill={BAR_COLORS['Biaya Operasional']} />
                         <Bar dataKey="Profit Kotor" fill={BAR_COLORS['Profit Kotor']} />
                     </BarChart>
                 </ResponsiveContainer>
             </section>
-            {/* GRAFIK DIPINDAHKAN KE SINI */}
-            <section className="bg-white p-6 rounded-xl shadow-lg mb-12">
-                <h2 className="text-2xl font-bold text-blue-900 text-center mb-6">Profit Kotor vs. Profit Bersih (Dengan Skema Leasing)</h2>
-                <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={profitComparisonData} margin={{ top: 5, right: 20, left: 50, bottom: 5 }}>
+            <section className="bg-white p-4 md:p-6 rounded-xl shadow-lg mb-12">
+                <h2 className="text-xl md:text-2xl font-bold text-blue-900 text-center mb-6">Profit Kotor vs. Profit Bersih (Dengan Skema Leasing)</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={profitComparisonData} margin={{ top: 5, right: 5, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                        <XAxis dataKey="name" tick={{ fill: '#424242' }} />
-                        <YAxis tickFormatter={(val) => formatCurrency(val, true)} tick={{ fill: '#424242' }} />
+                        <XAxis dataKey="name" tick={{ fill: '#424242', fontSize: 12 }} />
+                        <YAxis tickFormatter={(val) => formatCurrency(val, true)} tick={{ fill: '#424242', fontSize: 12 }} />
                         <Tooltip formatter={(value: number) => formatCurrency(value)} cursor={{ fill: 'rgba(230, 230, 230, 0.5)' }} />
-                        <Legend />
+                        <Legend wrapperStyle={{ fontSize: '14px' }} />
                         <Bar dataKey="Profit Kotor" fill={BAR_COLORS['Profit Kotor']} />
                         <Bar dataKey="Profit Bersih (Leasing)" fill={BAR_COLORS['Profit Bersih (Leasing)']} />
                     </BarChart>
                 </ResponsiveContainer>
-                 <p className="text-sm text-gray-500 mt-4 text-center italic">
+                 <p className="text-xs md:text-sm text-gray-500 mt-4 text-center italic">
                     Profit Bersih dihitung setelah pemotongan angsuran leasing bulanan. Ini memberikan gambaran arus kas bersih yang lebih akurat.
                 </p>
             </section>
@@ -165,24 +164,24 @@ const SummaryPage = () => {
 // --- HALAMAN 2: ANALISIS RINCI (DIPERBARUI) ---
 const DetailPage = () => {
     const DetailCard = ({ title, children }: { title: string, children: React.ReactNode }) => (
-        <div className="bg-white p-6 rounded-xl shadow-lg w-full">
-            <h3 className="text-2xl font-bold text-blue-900 mb-4 border-b-2 border-blue-200 pb-2">{title}</h3>
+        <div className="bg-white p-4 md:p-6 rounded-xl shadow-lg w-full">
+            <h3 className="text-xl md:text-2xl font-bold text-blue-900 mb-4 border-b-2 border-blue-200 pb-2">{title}</h3>
             {children}
         </div>
     );
 
     const BreakdownItem = ({ droneData }: { droneData: DroneDataType }) => ( 
         <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-            <h4 className="font-bold text-xl text-gray-800 text-center mb-2">{droneData.name}</h4>
+            <h4 className="font-bold text-lg md:text-xl text-gray-800 text-center mb-2">{droneData.name}</h4>
             <div>
                 <p className="font-semibold text-gray-600">Perhitungan Produktivitas:</p>
                 <p className="text-sm text-gray-500 pl-4">{`${droneData.detailAnalisa.produktivitasPerHari} Ha/hari × ${asumsiUmum['Hari Kerja / Bulan']} hari`}</p>
-                <p className="text-lg font-bold text-blue-800 pl-4">= {droneData.produktivitasHaPerBulan} Ha/Bulan</p>
+                <p className="text-md md:text-lg font-bold text-blue-800 pl-4">= {droneData.produktivitasHaPerBulan} Ha/Bulan</p>
             </div>
             <div>
                 <p className="font-semibold text-gray-600">Perhitungan Omset:</p>
                 <p className="text-sm text-gray-500 pl-4">{`${droneData.produktivitasHaPerBulan} Ha/Bulan × ${formatCurrency(asumsiUmum['Harga Borongan / Ha'])}`}</p>
-                <p className="text-lg font-bold text-green-700 pl-4">= {formatCurrency(droneData.targetOmset)}</p>
+                <p className="text-md md:text-lg font-bold text-green-700 pl-4">= {formatCurrency(droneData.targetOmset)}</p>
             </div>
             <div>
                 <p className="font-semibold text-gray-600">Rincian Biaya Operasional:</p>
@@ -194,7 +193,7 @@ const DetailPage = () => {
                         </li>
                     ))}
                 </ul>
-                <p className="text-lg font-bold text-red-700 pl-4 mt-1">= Total {formatCurrency(droneData.biayaOperasional)}</p>
+                <p className="text-md md:text-lg font-bold text-red-700 pl-4 mt-1">= Total {formatCurrency(droneData.biayaOperasional)}</p>
             </div>
         </div>
     );
@@ -203,22 +202,22 @@ const DetailPage = () => {
         const selisih = droneData.skemaPembelian.leasing.totalBiaya - droneData.skemaPembelian.cash;
         return (
             <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                <h4 className="font-bold text-xl text-gray-800 text-center mb-2">{droneData.name}</h4>
+                <h4 className="font-bold text-lg md:text-xl text-gray-800 text-center mb-2">{droneData.name}</h4>
                 <div>
-                    <h5 className="font-bold text-lg text-gray-700">Pembelian Cash</h5>
-                    <p className="text-2xl font-bold text-blue-800">{formatCurrency(droneData.skemaPembelian.cash)}</p>
+                    <h5 className="font-bold text-md md:text-lg text-gray-700">Pembelian Cash</h5>
+                    <p className="text-xl md:text-2xl font-bold text-blue-800">{formatCurrency(droneData.skemaPembelian.cash)}</p>
                 </div>
                 <div className="border-t pt-4">
-                    <h5 className="font-bold text-lg text-gray-700">Skema Leasing</h5>
-                    <ul className="text-gray-600 space-y-1 mt-2">
+                    <h5 className="font-bold text-md md:text-lg text-gray-700">Skema Leasing</h5>
+                    <ul className="text-sm md:text-base text-gray-600 space-y-1 mt-2">
                         <li><strong>Uang Muka (DP):</strong> {formatCurrency(droneData.skemaPembelian.leasing.dp)}</li>
                         <li><strong>Cicilan / Bulan:</strong> {formatCurrency(droneData.skemaPembelian.leasing.cicilanPerBulan)}</li>
                         <li><strong>Tenor:</strong> {droneData.skemaPembelian.leasing.tenorBulan} bulan</li>
                     </ul>
                     <div className="mt-3 bg-gray-100 p-3 rounded-md">
                         <p className="font-semibold text-gray-800">Total Biaya Leasing:</p>
-                        <p className="text-xl font-bold text-orange-600">{formatCurrency(droneData.skemaPembelian.leasing.totalBiaya)}</p>
-                        <p className="text-sm text-red-600">Lebih mahal {formatCurrency(selisih)} dari cash</p>
+                        <p className="text-lg md:text-xl font-bold text-orange-600">{formatCurrency(droneData.skemaPembelian.leasing.totalBiaya)}</p>
+                        <p className="text-xs md:text-sm text-red-600">Lebih mahal {formatCurrency(selisih)} dari cash</p>
                     </div>
                 </div>
             </div>
@@ -232,35 +231,33 @@ const DetailPage = () => {
 
         return (
             <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                <h4 className="font-bold text-xl text-gray-800 text-center mb-2">{droneData.name}</h4>
+                <h4 className="font-bold text-lg md:text-xl text-gray-800 text-center mb-2">{droneData.name}</h4>
                 
-                {/* Model A */}
                 <div className="bg-white p-3 rounded-md shadow-sm">
-                    <h5 className="font-bold text-lg text-gray-700">Model A: Bagi Hasil Langsung</h5>
-                    <p className="text-sm text-gray-500 mb-2">Profit kotor dibagi sejak bulan pertama.</p>
+                    <h5 className="font-bold text-md md:text-lg text-gray-700">Model A: Bagi Hasil Langsung</h5>
+                    <p className="text-xs md:text-sm text-gray-500 mb-2">Profit kotor dibagi sejak bulan pertama.</p>
                     <div className="flex justify-around items-center pt-2 border-t">
                         <div className="text-center">
                             <p className="font-semibold text-blue-800">Investor (40%)</p>
-                            <p className="text-xl font-bold text-blue-800">{formatCurrency(investorShareA)}</p>
+                            <p className="text-lg md:text-xl font-bold text-blue-800">{formatCurrency(investorShareA)}</p>
                         </div>
                         <div className="text-center">
                             <p className="font-semibold text-indigo-800">Tim (60%)</p>
-                            <p className="text-xl font-bold text-indigo-800">{formatCurrency(teamShareA)}</p>
+                            <p className="text-lg md:text-xl font-bold text-indigo-800">{formatCurrency(teamShareA)}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Model B */}
                 <div className="bg-white p-3 rounded-md shadow-sm">
-                    <h5 className="font-bold text-lg text-gray-700">Model B: Pengembalian Modal Dahulu (Investor Priority)</h5>
-                    <p className="text-sm text-gray-500 mb-2">100% profit untuk investor hingga modal kembali, lalu bagi hasil.</p>
+                    <h5 className="font-bold text-md md:text-lg text-gray-700">Model B: Pengembalian Modal Dahulu (Investor Priority)</h5>
+                    <p className="text-xs md:text-sm text-gray-500 mb-2">100% profit untuk investor hingga modal kembali, lalu bagi hasil.</p>
                     <div className="pt-2 border-t">
                         <p className="font-semibold text-center">Fase 1: Pengembalian Modal</p>
-                        <p className="text-center text-gray-600">Selama <strong className="text-2xl text-green-700">{capitalReturnMonths.toFixed(1)}</strong> bulan pertama, 100% profit kotor (<strong className="text-green-700">{formatCurrency(droneData.profitKotor)}/bulan</strong>) diserahkan ke investor.</p>
+                        <p className="text-center text-sm text-gray-600">Selama <strong className="text-xl md:text-2xl text-green-700">{capitalReturnMonths.toFixed(1)}</strong> bulan pertama, 100% profit kotor (<strong className="text-green-700">{formatCurrency(droneData.profitKotor)}/bulan</strong>) diserahkan ke investor.</p>
                     </div>
                      <div className="mt-2 pt-2 border-t">
                         <p className="font-semibold text-center">Fase 2: Bagi Hasil Normal</p>
-                        <p className="text-center text-gray-600">Setelah bulan ke-{Math.ceil(capitalReturnMonths)}, bagi hasil dimulai seperti Model A.</p>
+                        <p className="text-center text-sm text-gray-600">Setelah bulan ke-{Math.ceil(capitalReturnMonths)}, bagi hasil dimulai seperti Model A.</p>
                     </div>
                 </div>
             </div>
@@ -282,7 +279,7 @@ const DetailPage = () => {
         <>
             <header className="text-center mb-10">
                 <h1 className="text-4xl sm:text-5xl font-extrabold text-blue-900 tracking-tight">Analisis Rinci</h1>
-                <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">Membedah angka di balik proyeksi untuk pengambilan keputusan yang informatif.</p>
+                <p className="mt-4 text-md md:text-lg text-gray-600 max-w-3xl mx-auto">Membedah angka di balik proyeksi untuk pengambilan keputusan yang informatif.</p>
             </header>
 
             <div className="space-y-8">
@@ -305,7 +302,7 @@ const DetailPage = () => {
                         <ProfitSharingComparison droneData={T50_DATA} />
                         <ProfitSharingComparison droneData={T100_DATA} />
                     </div>
-                    <p className="text-sm text-gray-500 mt-4 text-center italic">
+                    <p className="text-xs md:text-sm text-gray-500 mt-4 text-center italic">
                         <b>Model B (Pengembalian Modal Dahulu)</b> adalah skema yang direkomendasikan karena memberikan keamanan investasi yang lebih tinggi bagi investor.
                     </p>
                 </DetailCard>
@@ -315,7 +312,7 @@ const DetailPage = () => {
                         {Object.entries(asumsiUmum).map(([key, value]) => (
                             <div key={key} className="bg-gray-50 p-4 rounded-lg">
                                 <p className="text-gray-500 font-semibold">{key}</p>
-                                <p className="text-blue-900 text-2xl font-bold">{renderAsumsiValue(key, value)}</p>
+                                <p className="text-xl md:text-2xl font-bold text-blue-900">{renderAsumsiValue(key, value)}</p>
                             </div>
                         ))}
                     </div>
@@ -334,14 +331,14 @@ const RiskPage = () => {
         { category: 'Risiko Keuangan', icon: '🏦', points: [ { risk: 'Kenaikan biaya operasional (BBM, suku cadang)', mitigation: 'Melakukan kontrak pembelian BBM dalam volume besar untuk mendapatkan harga lebih baik dan melakukan efisiensi rute kerja.' }, { risk: 'Pembayaran tertunda dari klien', mitigation: 'Menerapkan sistem uang muka (down payment) sebelum pekerjaan dimulai dan memberikan diskon untuk pembayaran tepat waktu.' }, { risk: 'Arus kas (cash flow) negatif di awal', mitigation: 'Menyiapkan modal kerja yang cukup untuk menutupi biaya operasional selama 3-6 bulan pertama.' }, ] }
     ];
     const RiskCard = ({ category, icon, points }: RiskCategory) => (
-        <div className="bg-white p-6 rounded-xl shadow-lg w-full">
-            <h3 className="text-2xl font-bold text-blue-900 mb-4 flex items-center"><span className="text-3xl mr-3">{icon}</span>{category}</h3>
-            <div className="space-y-4">{points.map((point, index) => (<div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4"><div><p className="font-semibold text-gray-700">Risiko:</p><p className="text-gray-600">{point.risk}</p></div><div className="bg-blue-50 p-3 rounded-lg"><p className="font-semibold text-blue-800">Strategi Mitigasi:</p><p className="text-blue-700">{point.mitigation}</p></div></div>))}</div>
+        <div className="bg-white p-4 md:p-6 rounded-xl shadow-lg w-full">
+            <h3 className="text-xl md:text-2xl font-bold text-blue-900 mb-4 flex items-center"><span className="text-3xl mr-3">{icon}</span>{category}</h3>
+            <div className="space-y-4">{points.map((point, index) => (<div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4"><div><p className="font-semibold text-gray-700">Risiko:</p><p className="text-sm md:text-base text-gray-600">{point.risk}</p></div><div className="bg-blue-50 p-3 rounded-lg"><p className="font-semibold text-blue-800">Strategi Mitigasi:</p><p className="text-sm md:text-base text-blue-700">{point.mitigation}</p></div></div>))}</div>
         </div>
     );
     return (
         <>
-            <header className="text-center mb-10"><h1 className="text-4xl sm:text-5xl font-extrabold text-blue-900 tracking-tight">Manajemen Risiko & Mitigasi</h1><p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">Mengidentifikasi potensi tantangan dan merencanakan strategi proaktif untuk memastikan keberlanjutan bisnis.</p></header>
+            <header className="text-center mb-10"><h1 className="text-4xl sm:text-5xl font-extrabold text-blue-900 tracking-tight">Manajemen Risiko & Mitigasi</h1><p className="mt-4 text-md md:text-lg text-gray-600 max-w-3xl mx-auto">Mengidentifikasi potensi tantangan dan merencanakan strategi proaktif untuk memastikan keberlanjutan bisnis.</p></header>
             <div className="space-y-8">{riskData.map(data => <RiskCard key={data.category} {...data} />)}</div>
         </>
     );
@@ -454,7 +451,6 @@ const AiAssistantPage = () => {
         `;
         const riskContent = await callGeminiApi(prompt);
         if (riskContent) {
-            // Clean the response to get valid JSON
             const cleanedResponse = riskContent.replace(/```json/g, '').replace(/```/g, '').trim();
             try {
                 const parsedRisks = JSON.parse(cleanedResponse);
@@ -472,13 +468,12 @@ const AiAssistantPage = () => {
         <>
             <header className="text-center mb-10">
                 <h1 className="text-4xl sm:text-5xl font-extrabold text-blue-900 tracking-tight">AI Assistant</h1>
-                <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">Gunakan AI untuk mempercepat pembuatan draf email dan analisis risiko.</p>
+                <p className="mt-4 text-md md:text-lg text-gray-600 max-w-3xl mx-auto">Gunakan AI untuk mempercepat pembuatan draf email dan analisis risiko.</p>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Kolom Generator Email */}
                 <div className="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 className="text-2xl font-bold text-blue-900 mb-4">Generator Draf Email untuk Investor</h3>
+                    <h3 className="text-xl md:text-2xl font-bold text-blue-900 mb-4">Generator Draf Email untuk Investor</h3>
                     <div className="space-y-4">
                         <input
                             type="text"
@@ -510,9 +505,8 @@ const AiAssistantPage = () => {
                     </div>
                 </div>
 
-                {/* Kolom Analisis Risiko AI */}
                 <div className="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 className="text-2xl font-bold text-blue-900 mb-4">Analisis Risiko Tambahan (AI)</h3>
+                    <h3 className="text-xl md:text-2xl font-bold text-blue-900 mb-4">Analisis Risiko Tambahan (AI)</h3>
                     <button
                         onClick={handleGenerateRisks}
                         disabled={isRiskLoading}
@@ -544,6 +538,12 @@ const AiAssistantPage = () => {
 // --- KOMPONEN UTAMA ---
 function App() {
     const [activePage, setActivePage] = useState('summary');
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const handleNavClick = (page: string) => {
+        setActivePage(page);
+        setIsMenuOpen(false);
+    };
 
     const renderPage = () => {
         switch (activePage) {
@@ -566,32 +566,45 @@ function App() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
                         <div className="flex items-center">
-                            <span className="text-3xl font-bold text-blue-900">Analisa Bisnis Drone</span>
+                            <span className="text-2xl md:text-3xl font-bold text-blue-900">Analisa Bisnis Drone</span>
                         </div>
                         <div className="hidden md:flex items-center space-x-2">
-                            <NavButton onClick={() => setActivePage('summary')} isActive={activePage === 'summary'}>Ringkasan</NavButton>
-                            <NavButton onClick={() => setActivePage('details')} isActive={activePage === 'details'}>Analisis Rinci</NavButton>
-                            <NavButton onClick={() => setActivePage('risks')} isActive={activePage === 'risks'}>Manajemen Risiko</NavButton>
-                            <NavButton onClick={() => setActivePage('ai')} isActive={activePage === 'ai'}>Asisten AI</NavButton>
+                            <NavButton onClick={() => handleNavClick('summary')} isActive={activePage === 'summary'}>Ringkasan</NavButton>
+                            <NavButton onClick={() => handleNavClick('details')} isActive={activePage === 'details'}>Analisis Rinci</NavButton>
+                            <NavButton onClick={() => handleNavClick('risks')} isActive={activePage === 'risks'}>Manajemen Risiko</NavButton>
+                            <NavButton onClick={() => handleNavClick('ai')} isActive={activePage === 'ai'}>Asisten AI</NavButton>
                         </div>
                          <div className="md:hidden flex items-center">
-                             <select onChange={(e) => setActivePage(e.target.value)} value={activePage} className="bg-blue-800 text-white p-2 rounded-md">
-                                 <option value="summary">Ringkasan</option>
-                                 <option value="details">Analisis Rinci</option>
-                                 <option value="risks">Manajemen Risiko</option>
-                                 <option value="ai">Asisten AI</option>
-                             </select>
+                             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="inline-flex items-center justify-center p-2 rounded-md text-blue-900 hover:text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                                <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                                    {isMenuOpen ? (
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                    ) : (
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                                    )}
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
+                {isMenuOpen && (
+                    <div className="md:hidden">
+                        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                            <a onClick={() => handleNavClick('summary')} className={`block px-3 py-2 rounded-md text-base font-medium ${activePage === 'summary' ? 'bg-blue-900 text-white' : 'text-gray-700 hover:bg-gray-200'}`}>Ringkasan</a>
+                            <a onClick={() => handleNavClick('details')} className={`block px-3 py-2 rounded-md text-base font-medium ${activePage === 'details' ? 'bg-blue-900 text-white' : 'text-gray-700 hover:bg-gray-200'}`}>Analisis Rinci</a>
+                            <a onClick={() => handleNavClick('risks')} className={`block px-3 py-2 rounded-md text-base font-medium ${activePage === 'risks' ? 'bg-blue-900 text-white' : 'text-gray-700 hover:bg-gray-200'}`}>Manajemen Risiko</a>
+                            <a onClick={() => handleNavClick('ai')} className={`block px-3 py-2 rounded-md text-base font-medium ${activePage === 'ai' ? 'bg-blue-900 text-white' : 'text-gray-700 hover:bg-gray-200'}`}>Asisten AI</a>
+                        </div>
+                    </div>
+                )}
             </nav>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
                 {renderPage()}
             </main>
 
             <footer className="bg-blue-900 text-white mt-12">
-                <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center">
+                <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm">
                     <p>&copy; 2024 Analisis Bisnis Drone. Dibuat untuk membantu pengambilan keputusan investasi.</p>
                 </div>
             </footer>
