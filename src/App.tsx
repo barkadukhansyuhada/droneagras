@@ -1,34 +1,33 @@
 import { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-interface DroneData {
-  name: string;
-  hargaBaru: number;
-  targetOmset: number;
-  biayaOperasional: number;
-  profitKotor: number;
-  produktivitasHaPerBulan: number;
-  biaya: Record<string, number>;
-  detailAnalisa: {
-    produktivitasPerHari: number;
-    keteranganGaji: string;
-    keteranganBBM: string;
-    keteranganPerawatan: string;
-  };
-  skemaPembelian: {
-    cash: number;
-    leasing: {
-      dp: number;
-      cicilanPerBulan: number;
-      tenorBulan: number;
-      totalBiaya: number;
+// --- TYPE DEFINITIONS ---
+type DroneDataType = {
+    name: string;
+    hargaBaru: number;
+    targetOmset: number;
+    biayaOperasional: number;
+    profitKotor: number;
+    produktivitasHaPerBulan: number;
+    biaya: { [key: string]: number };
+    detailAnalisa: { [key: string]: string | number };
+    skemaPembelian: {
+        cash: number;
+        leasing: {
+            dp: number;
+            cicilanPerBulan: number;
+            tenorBulan: number;
+            totalBiaya: number;
+        };
     };
-  };
-  profitBersihLeasing: number;
-}
+    profitBersihLeasing: number;
+};
+
+type RiskPoint = { risk: string; mitigation: string };
+type RiskCategory = { category: string; icon: string; points: RiskPoint[] };
 
 // --- DATA DARI EXCEL ANDA (TERMASUK DETAIL DARI SHEET ANALISA & CASHFLOW) ---
-const T50_DATA = {
+const T50_DATA: DroneDataType = {
     name: 'DJI Agras T50',
     hargaBaru: 400000000,
     targetOmset: 145200000,
@@ -55,7 +54,7 @@ const T50_DATA = {
         return this.profitKotor - this.skemaPembelian.leasing.cicilanPerBulan;
     }
 };
-const T100_DATA = {
+const T100_DATA: DroneDataType = {
     name: 'DJI Agras T100',
     hargaBaru: 550000000,
     targetOmset: 264000000,
@@ -94,32 +93,11 @@ const asumsiUmum = { 'Hari Kerja / Bulan': 22, 'Jam Kerja Efektif / Hari': '6 ja
 
 // --- STYLING & KOMPONEN KECIL ---
 const BAR_COLORS = { 'Target Omset': '#4caf50', 'Biaya Operasional': '#f44336', 'Profit Kotor': '#2196f3', 'Profit Bersih (Leasing)': '#ff9800' };
-const formatCurrency = (value: number, compact: boolean = false): string => {
+const formatCurrency = (value: number, compact = false) => {
     if (compact && value >= 1_000_000) return `Rp ${(value / 1_000_000).toLocaleString('id-ID')} Jt`;
     return `Rp ${value.toLocaleString('id-ID')}`;
 };
-
-const getKeterangan = (droneData: DroneData, key: string): string => {
-  const category = key.split(' ')[0];
-  switch (category) {
-    case 'Gaji':
-      return droneData.detailAnalisa.keteranganGaji;
-    case 'BBM':
-      return droneData.detailAnalisa.keteranganBBM;
-    case 'Perawatan':
-      return droneData.detailAnalisa.keteranganPerawatan;
-    default:
-      return '';
-  }
-};
-
-interface NavButtonProps {
-  children: React.ReactNode;
-  onClick: () => void;
-  isActive: boolean;
-}
-
-const NavButton = ({ children, onClick, isActive }: NavButtonProps) => (
+const NavButton = ({ children, onClick, isActive }: { children: React.ReactNode, onClick: () => void, isActive: boolean }) => (
     <button onClick={onClick} className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-300 ${isActive ? 'bg-blue-900 text-white shadow-md' : 'bg-white text-blue-900 hover:bg-blue-100'}`}>
         {children}
     </button>
@@ -127,14 +105,7 @@ const NavButton = ({ children, onClick, isActive }: NavButtonProps) => (
 
 // --- HALAMAN 1: RINGKASAN EKSEKUTIF ---
 const SummaryPage = () => { 
-    interface MetricCardProps {
-      title: string;
-      value: string;
-      description: string;
-      icon: string;
-    }
-
-    const MetricCard = ({ title, value, description, icon }: MetricCardProps) => (
+    const MetricCard = ({ title, value, description, icon }: { title: string, value: string, description: string, icon: string }) => (
         <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center transform hover:scale-105 transition-transform duration-300">
             <div className="text-5xl mb-3">{icon}</div>
             <h3 className="text-xl font-bold text-gray-700">{title}</h3>
@@ -160,7 +131,7 @@ const SummaryPage = () => {
                     <BarChart data={comparisonData} margin={{ top: 5, right: 20, left: 50, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                         <XAxis dataKey="name" tick={{ fill: '#424242' }} />
-                        <YAxis tickFormatter={(val: number) => formatCurrency(val, true)} tick={{ fill: '#424242' }} />
+                        <YAxis tickFormatter={(val) => formatCurrency(val, true)} tick={{ fill: '#424242' }} />
                         <Tooltip formatter={(value: number) => formatCurrency(value)} cursor={{ fill: 'rgba(230, 230, 230, 0.5)' }} />
                         <Legend />
                         <Bar dataKey="Target Omset" fill={BAR_COLORS['Target Omset']} />
@@ -176,7 +147,7 @@ const SummaryPage = () => {
                     <BarChart data={profitComparisonData} margin={{ top: 5, right: 20, left: 50, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                         <XAxis dataKey="name" tick={{ fill: '#424242' }} />
-                        <YAxis tickFormatter={(val: number) => formatCurrency(val, true)} tick={{ fill: '#424242' }} />
+                        <YAxis tickFormatter={(val) => formatCurrency(val, true)} tick={{ fill: '#424242' }} />
                         <Tooltip formatter={(value: number) => formatCurrency(value)} cursor={{ fill: 'rgba(230, 230, 230, 0.5)' }} />
                         <Legend />
                         <Bar dataKey="Profit Kotor" fill={BAR_COLORS['Profit Kotor']} />
@@ -193,24 +164,14 @@ const SummaryPage = () => {
 
 // --- HALAMAN 2: ANALISIS RINCI (DIPERBARUI) ---
 const DetailPage = () => {
-    interface DetailCardProps {
-      title: string;
-      children: React.ReactNode;
-    }
-    
-    const DetailCard = ({ title, children }: DetailCardProps) => (
+    const DetailCard = ({ title, children }: { title: string, children: React.ReactNode }) => (
         <div className="bg-white p-6 rounded-xl shadow-lg w-full">
             <h3 className="text-2xl font-bold text-blue-900 mb-4 border-b-2 border-blue-200 pb-2">{title}</h3>
             {children}
         </div>
     );
 
-    
-    interface BreakdownItemProps {
-      droneData: DroneData;
-    }
-    
-    const BreakdownItem = ({ droneData }: BreakdownItemProps) => (
+    const BreakdownItem = ({ droneData }: { droneData: DroneDataType }) => ( 
         <div className="bg-gray-50 p-4 rounded-lg space-y-3">
             <h4 className="font-bold text-xl text-gray-800 text-center mb-2">{droneData.name}</h4>
             <div>
@@ -229,7 +190,7 @@ const DetailPage = () => {
                     {Object.entries(droneData.biaya).map(([key, value]) => (
                         <li key={key}>
                             <span className="font-semibold">{key}:</span> {formatCurrency(value)}
-                            <span className="text-xs text-gray-500 italic ml-2">({getKeterangan(droneData, key)})</span>
+                            <span className="text-xs text-gray-500 italic ml-2">({droneData.detailAnalisa[`keterangan${key.split(' ')[0]}`]})</span>
                         </li>
                     ))}
                 </ul>
@@ -238,11 +199,7 @@ const DetailPage = () => {
         </div>
     );
 
-    interface AcquisitionCostItemProps {
-      droneData: DroneData;
-    }
-    
-    const AcquisitionCostItem = ({ droneData }: AcquisitionCostItemProps) => {
+    const AcquisitionCostItem = ({ droneData }: { droneData: DroneDataType }) => { 
         const selisih = droneData.skemaPembelian.leasing.totalBiaya - droneData.skemaPembelian.cash;
         return (
             <div className="bg-gray-50 p-4 rounded-lg space-y-4">
@@ -268,11 +225,7 @@ const DetailPage = () => {
         );
     };
 
-    interface ProfitSharingComparisonProps {
-      droneData: DroneData;
-    }
-    
-    const ProfitSharingComparison = ({ droneData }: ProfitSharingComparisonProps) => {
+    const ProfitSharingComparison = ({ droneData }: { droneData: DroneDataType }) => { 
         const investorShareA = droneData.profitKotor * 0.40;
         const teamShareA = droneData.profitKotor * 0.60;
         const capitalReturnMonths = droneData.hargaBaru / droneData.profitKotor;
@@ -314,14 +267,14 @@ const DetailPage = () => {
         );
     };
     
-    const renderAsumsiValue = (key: string, value: any): string => {
+    const renderAsumsiValue = (key: string, value: string | number) => {
         if (key.includes('Harga')) {
             return formatCurrency(value as number);
         }
         if (key.includes('Hari Kerja')) {
             return `${value} hari`;
         }
-        return value as string;
+        return value;
     };
 
 
@@ -375,27 +328,15 @@ const DetailPage = () => {
 
 // --- HALAMAN 3: MANAJEMEN RISIKO ---
 const RiskPage = () => { 
-    const riskData = [
+    const riskData: RiskCategory[] = [
         { category: 'Risiko Operasional', icon: '⚙️', points: [ { risk: 'Kerusakan alat / drone', mitigation: 'Jadwal perawatan preventif rutin, ketersediaan suku cadang kritis di lokasi, dan memiliki unit cadangan.' }, { risk: 'Kecelakaan kerja', mitigation: 'Pelatihan K3 (Kesehatan dan Keselamatan Kerja) berkala untuk semua operator dan helper, serta penggunaan Alat Pelindung Diri (APD) standar.' }, { risk: 'Kondisi cuaca buruk (hujan, angin kencang)', mitigation: 'Sistem pemantauan cuaca real-time dan penjadwalan kerja yang fleksibel untuk memaksimalkan hari kerja yang cerah.' }, { risk: 'Keterampilan operator yang tidak memadai', mitigation: 'Program sertifikasi dan pelatihan berkelanjutan bagi semua operator untuk memastikan standar kualitas dan keamanan tertinggi.' }, ] },
         { category: 'Risiko Pasar & Kompetisi', icon: '📈', points: [ { risk: 'Penurunan permintaan jasa', mitigation: 'Diversifikasi klien ke berbagai jenis komoditas (sawit, padi, tebu) dan membangun kontrak jangka panjang.' }, { risk: 'Perang harga dengan kompetitor', mitigation: 'Fokus pada keunggulan kualitas layanan, ketepatan waktu, pelaporan data yang akurat, dan membangun reputasi merek yang kuat.' }, { risk: 'Kesulitan mendapatkan kontrak baru', mitigation: 'Membangun tim pemasaran yang proaktif, menjalin kemitraan strategis dengan perusahaan perkebunan besar dan koperasi petani.' }, ] },
         { category: 'Risiko Keuangan', icon: '🏦', points: [ { risk: 'Kenaikan biaya operasional (BBM, suku cadang)', mitigation: 'Melakukan kontrak pembelian BBM dalam volume besar untuk mendapatkan harga lebih baik dan melakukan efisiensi rute kerja.' }, { risk: 'Pembayaran tertunda dari klien', mitigation: 'Menerapkan sistem uang muka (down payment) sebelum pekerjaan dimulai dan memberikan diskon untuk pembayaran tepat waktu.' }, { risk: 'Arus kas (cash flow) negatif di awal', mitigation: 'Menyiapkan modal kerja yang cukup untuk menutupi biaya operasional selama 3-6 bulan pertama.' }, ] }
     ];
-    interface RiskPoint {
-      risk: string;
-      mitigation: string;
-    }
-    
-    
-    interface RiskCardProps {
-      category: string;
-      icon: string;
-      points: RiskPoint[];
-    }
-    
-    const RiskCard = ({ category, icon, points }: RiskCardProps) => (
+    const RiskCard = ({ category, icon, points }: RiskCategory) => (
         <div className="bg-white p-6 rounded-xl shadow-lg w-full">
             <h3 className="text-2xl font-bold text-blue-900 mb-4 flex items-center"><span className="text-3xl mr-3">{icon}</span>{category}</h3>
-            <div className="space-y-4">{points.map((point: RiskPoint, index: number) => (<div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4"><div><p className="font-semibold text-gray-700">Risiko:</p><p className="text-gray-600">{point.risk}</p></div><div className="bg-blue-50 p-3 rounded-lg"><p className="font-semibold text-blue-800">Strategi Mitigasi:</p><p className="text-blue-700">{point.mitigation}</p></div></div>))}</div>
+            <div className="space-y-4">{points.map((point, index) => (<div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4"><div><p className="font-semibold text-gray-700">Risiko:</p><p className="text-gray-600">{point.risk}</p></div><div className="bg-blue-50 p-3 rounded-lg"><p className="font-semibold text-blue-800">Strategi Mitigasi:</p><p className="text-blue-700">{point.mitigation}</p></div></div>))}</div>
         </div>
     );
     return (
@@ -409,16 +350,16 @@ const RiskPage = () => {
 
 // --- HALAMAN 4: ASISTEN AI ---
 const AiAssistantPage = () => { 
-    const [investorName, setInvestorName] = useState<string>('');
-    const [investorCompany, setInvestorCompany] = useState<string>('');
-    const [generatedEmail, setGeneratedEmail] = useState<string>('');
-    const [generatedRisks, setGeneratedRisks] = useState<string>('');
-    const [isEmailLoading, setIsEmailLoading] = useState<boolean>(false);
-    const [isRiskLoading, setIsRiskLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string>('');
+    const [investorName, setInvestorName] = useState('');
+    const [investorCompany, setInvestorCompany] = useState('');
+    const [generatedEmail, setGeneratedEmail] = useState('');
+    const [generatedRisks, setGeneratedRisks] = useState<RiskPoint[] | null>(null);
+    const [isEmailLoading, setIsEmailLoading] = useState(false);
+    const [isRiskLoading, setIsRiskLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const callGeminiApi = async (prompt: string, retries: number = 3, delay: number = 1000): Promise<string | null> => {
-        const apiKey = "";
+    const callGeminiApi = async (prompt: string, retries = 3, delay = 1000) => {
+        const apiKey = ""; 
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
         try {
             const response = await fetch(apiUrl, {
@@ -441,7 +382,11 @@ const AiAssistantPage = () => {
             }
         } catch (e: unknown) {
             console.error(e);
-            setError((e as Error).message);
+            if (e instanceof Error) {
+                setError(e.message);
+            } else {
+                setError(String(e));
+            }
             return null;
         }
     };
@@ -454,64 +399,204 @@ const AiAssistantPage = () => {
         setIsEmailLoading(true);
         setError('');
         setGeneratedEmail('');
-        const prompt = `Buat draf email profesional, singkat, dan persuasif dalam Bahasa Indonesia untuk seorang investor. **Penerima:** - Nama: ${investorName} - Perusahaan: ${investorCompany} **Konteks Bisnis:** Saya mencari pendanaan untuk bisnis penyewaan drone agrikultur (pertanian) di Indonesia. Fokus utama kami adalah penggunaan drone DJI Agras T100. **Poin Kunci yang Harus Disorot (pilih dan rangkai dengan baik):** - Profitabilitas tinggi: Profit kotor bulanan per unit mencapai ${formatCurrency(T100_DATA.profitKotor)}. - Pengembalian Investasi Cepat: Payback period diperkirakan kurang dari 3 bulan. - Pasar yang Berkembang: Modernisasi agrikultur di Indonesia adalah peluang besar. - Efisiensi Operasional: Produktivitas satu unit drone T100 mencapai ${T100_DATA.produktivitasHaPerBulan} hektar per bulan. **Tujuan Email:** - Memperkenalkan peluang investasi. - Menimbulkan ketertarikan untuk meeting lanjutan. - Tunjukkan bahwa kami memiliki data proyeksi yang solid. **Gaya Bahasa:** - Hormat, to the point, dan berorientasi pada data. - Gunakan sapaan yang sesuai (Yth. Bapak/Ibu ${investorName}). - Akhiri dengan ajakan untuk berdiskusi lebih lanjut.`;
-        const result = await callGeminiApi(prompt);
-        if (result) setGeneratedEmail(result);
+        const prompt = `Buat draf email profesional, singkat, dan persuasif dalam Bahasa Indonesia untuk seorang investor.
+- **Penerima:**
+  - Nama: ${investorName}
+  - Perusahaan: ${investorCompany}
+- **Konteks Bisnis:**
+  Saya mencari pendanaan untuk bisnis penyewaan drone agrikultur (pertanian) di Indonesia. Fokus utama kami adalah penggunaan drone DJI Agras T100.
+- **Poin Kunci yang Harus Disorot:**
+  1.  **Profitabilitas Tinggi:** Jelaskan bahwa model bisnis ini menawarkan profit kotor bulanan sekitar ${formatCurrency(T100_DATA.profitKotor)} per unit.
+  2.  **Payback Period Cepat:** Sebutkan potensi pengembalian modal (Payback Period) yang sangat cepat, yaitu kurang dari 3 bulan.
+  3.  **Rekomendasi Utama:** Tekankan bahwa DJI Agras T100 adalah pilihan yang direkomendasikan karena produktivitas dan profitabilitasnya yang superior dibandingkan T50.
+  4.  **Permintaan Tinggi:** Sebutkan bahwa pasar untuk layanan drone pertanian sedang berkembang pesat di Indonesia.
+- **Tujuan Email:**
+  Mengajak investor untuk bertemu dan mendiskusikan proposal bisnis secara lebih rinci.
+- **Gaya Bahasa:**
+  Profesional, percaya diri, dan fokus pada data (angka).
+
+**Struktur Email yang Diinginkan:**
+1.  **Subjek Email:** Buat subjek yang menarik dan langsung ke intinya. Contoh: "Peluang Investasi: Bisnis Drone Agrikultur dengan ROI Cepat"
+2.  **Paragraf 1 (Pembukaan):** Sapa investor secara personal dan perkenalkan diri/perusahaan secara singkat.
+3.  **Paragraf 2 (Inti):** Paparkan poin-poin kunci secara ringkas dan jelas. Gunakan angka-angka dari poin kunci di atas.
+4.  **Paragraf 3 (Ajakan Bertindak):** Ajak investor untuk meeting (online atau offline) dan tanyakan ketersediaan waktu mereka.
+5.  **Penutup:** Ucapkan terima kasih dan sertakan informasi kontak.
+`;
+
+        const emailContent = await callGeminiApi(prompt);
+        if (emailContent) {
+            setGeneratedEmail(emailContent);
+        }
         setIsEmailLoading(false);
     };
 
     const handleGenerateRisks = async () => {
         setIsRiskLoading(true);
         setError('');
-        setGeneratedRisks('');
-        const prompt = `Anda adalah seorang analis risiko investasi berpengalaman. Berdasarkan analisis risiko yang sudah ada untuk bisnis penyewaan drone agrikultur di Indonesia (Operasional, Pasar, Keuangan), berikan 3 skenario risiko tambahan yang lebih spesifik dan "out-of-the-box". Untuk setiap skenario, jelaskan: 1. **Nama Skenario Risiko:** (Contoh: "Disrupsi Rantai Pasok Suku Cadang Drone") 2. **Deskripsi Singkat:** Apa pemicunya dan bagaimana dampaknya pada bisnis? 3. **Saran Mitigasi Proaktif:** Langkah konkret apa yang bisa diambil sekarang untuk mengurangi dampaknya? Fokus pada risiko yang mungkin terlewatkan dalam analisis standar. Pikirkan tentang regulasi pemerintah yang mendadak berubah, isu sosial dengan petani lokal, atau kemajuan teknologi pesaing yang tak terduga.`;
-        const result = await callGeminiApi(prompt);
-        if (result) setGeneratedRisks(result);
+        setGeneratedRisks(null);
+        const prompt = `
+        **Konteks:** Saya sedang membuat analisis risiko untuk bisnis penyewaan drone agrikultur (DJI Agras T100) di Indonesia.
+        **Tugas:** Berdasarkan data risiko yang sudah ada (Operasional, Pasar, Keuangan), identifikasi 3 risiko tambahan yang paling mungkin terjadi dan belum tercantum.
+        **Data Risiko yang Sudah Ada:**
+        - Operasional: Kerusakan alat, kecelakaan kerja, cuaca buruk, keterampilan operator.
+        - Pasar: Penurunan permintaan, perang harga, kesulitan kontrak baru.
+        - Keuangan: Kenaikan biaya operasional, pembayaran tertunda, arus kas negatif awal.
+
+        **Format Output:**
+        Berikan jawaban dalam format JSON. Buatlah array dari objek, di mana setiap objek memiliki dua properti: 'risk' (string) dan 'mitigation' (string).
+        Contoh:
+        [
+          {
+            "risk": "Contoh Risiko Baru",
+            "mitigation": "Contoh strategi mitigasi untuk risiko baru."
+          }
+        ]
+        `;
+        const riskContent = await callGeminiApi(prompt);
+        if (riskContent) {
+            // Clean the response to get valid JSON
+            const cleanedResponse = riskContent.replace(/```json/g, '').replace(/```/g, '').trim();
+            try {
+                const parsedRisks = JSON.parse(cleanedResponse);
+                setGeneratedRisks(parsedRisks);
+            } catch (e) {
+                setError("Gagal mem-parsing respon risiko dari AI.");
+                console.error("Parsing error:", e);
+            }
+        }
         setIsRiskLoading(false);
     };
 
+
     return (
         <>
-            <header className="text-center mb-10"><h1 className="text-4xl sm:text-5xl font-extrabold text-blue-900 tracking-tight">✨ Asisten AI</h1><p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">Manfaatkan kekuatan AI untuk memperdalam analisis dan mempercepat komunikasi dengan investor.</p></header>
-            <div className="space-y-12">
-                <div className="bg-white p-6 rounded-xl shadow-lg"><h2 className="text-2xl font-bold text-blue-900 mb-4">Generator Skenario Risiko AI</h2><p className="text-gray-600 mb-4">Tekan tombol di bawah untuk meminta AI menganalisis potensi risiko yang ada dan menghasilkan 3 skenario risiko tambahan yang lebih mendalam untuk didiskusikan dengan investor.</p><button onClick={handleGenerateRisks} disabled={isRiskLoading} className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center">{isRiskLoading ? (<><svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Menganalisis...</>) : '✨ Hasilkan Skenario Risiko Tambahan'}</button>{generatedRisks && <div className="mt-4 p-4 bg-gray-50 rounded-lg whitespace-pre-wrap font-mono text-sm">{generatedRisks}</div>}</div>
-                <div className="bg-white p-6 rounded-xl shadow-lg"><h2 className="text-2xl font-bold text-blue-900 mb-4">Generator Draf Email Pitching AI</h2><div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><input type="text" placeholder="Nama Investor" value={investorName} onChange={(e) => setInvestorName(e.target.value)} className="p-2 border rounded-lg"/><input type="text" placeholder="Perusahaan Investor" value={investorCompany} onChange={(e) => setInvestorCompany(e.target.value)} className="p-2 border rounded-lg"/></div><button onClick={handleGenerateEmail} disabled={isEmailLoading} className="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 disabled:bg-gray-400 flex items-center">{isEmailLoading ? (<><svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Membuat Draf...</>) : '✨ Buat Draf Email'}</button>{generatedEmail && <div className="mt-4 p-4 bg-gray-50 rounded-lg whitespace-pre-wrap font-mono text-sm">{generatedEmail}</div>}</div>
-                {error && <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+            <header className="text-center mb-10">
+                <h1 className="text-4xl sm:text-5xl font-extrabold text-blue-900 tracking-tight">AI Assistant</h1>
+                <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">Gunakan AI untuk mempercepat pembuatan draf email dan analisis risiko.</p>
+            </header>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Kolom Generator Email */}
+                <div className="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 className="text-2xl font-bold text-blue-900 mb-4">Generator Draf Email untuk Investor</h3>
+                    <div className="space-y-4">
+                        <input
+                            type="text"
+                            placeholder="Nama Investor (Contoh: Bapak Budi)"
+                            value={investorName}
+                            onChange={(e) => setInvestorName(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Nama Perusahaan Investor (Contoh: PT. Investasi Maju)"
+                            value={investorCompany}
+                            onChange={(e) => setInvestorCompany(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <button
+                            onClick={handleGenerateEmail}
+                            disabled={isEmailLoading}
+                            className="w-full bg-blue-800 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-900 transition-colors disabled:bg-gray-400"
+                        >
+                            {isEmailLoading ? 'Membuat Email...' : 'Buat Draf Email'}
+                        </button>
+                        {generatedEmail && (
+                            <div className="mt-4 p-4 bg-gray-50 rounded-md border">
+                                <h4 className="font-bold">Draf Email yang Dihasilkan:</h4>
+                                <pre className="whitespace-pre-wrap text-sm mt-2">{generatedEmail}</pre>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Kolom Analisis Risiko AI */}
+                <div className="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 className="text-2xl font-bold text-blue-900 mb-4">Analisis Risiko Tambahan (AI)</h3>
+                    <button
+                        onClick={handleGenerateRisks}
+                        disabled={isRiskLoading}
+                        className="w-full bg-green-700 text-white font-bold py-2 px-4 rounded-md hover:bg-green-800 transition-colors disabled:bg-gray-400"
+                    >
+                        {isRiskLoading ? 'Menganalisis...' : 'Identifikasi Risiko Tambahan'}
+                    </button>
+                    {generatedRisks && Array.isArray(generatedRisks) && (
+                        <div className="mt-4 space-y-4">
+                            {generatedRisks.map((item, index) => (
+                                <div key={index} className="p-4 bg-gray-50 rounded-md border">
+                                    <p className="font-semibold text-gray-700">Risiko AI #{index + 1}:</p>
+                                    <p className="text-gray-600">{item.risk}</p>
+                                    <div className="bg-green-50 p-3 rounded-lg mt-2">
+                                        <p className="font-semibold text-green-800">Saran Mitigasi:</p>
+                                        <p className="text-green-700">{item.mitigation}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
+            {error && <div className="mt-6 text-center text-red-600 bg-red-100 p-3 rounded-md">{error}</div>}
         </>
     );
 };
 
+// --- KOMPONEN UTAMA ---
+function App() {
+    const [activePage, setActivePage] = useState('summary');
 
-// --- KOMPONEN UTAMA APLIKASI ---
-interface AppState {
-  activePage: string;
-}
-
-const App = () => {
-    const [activePage, setActivePage] = useState<AppState['activePage']>('summary');
+    const renderPage = () => {
+        switch (activePage) {
+            case 'summary':
+                return <SummaryPage />;
+            case 'details':
+                return <DetailPage />;
+            case 'risks':
+                return <RiskPage />;
+            case 'ai':
+                return <AiAssistantPage />;
+            default:
+                return <SummaryPage />;
+        }
+    };
 
     return (
-        <div className="bg-gray-100 min-h-screen p-4 sm:p-8 font-sans">
-            <div className="max-w-7xl mx-auto">
-                <nav className="flex justify-center items-center mb-8 bg-white p-2 rounded-lg shadow-md space-x-2 flex-wrap">
-                    <NavButton onClick={() => setActivePage('summary')} isActive={activePage === 'summary'}>Ringkasan Eksekutif</NavButton>
-                    <NavButton onClick={() => setActivePage('details')} isActive={activePage === 'details'}>Analisis Rinci</NavButton>
-                    <NavButton onClick={() => setActivePage('risks')} isActive={activePage === 'risks'}>Manajemen Risiko</NavButton>
-                    <NavButton onClick={() => setActivePage('ai_assistant')} isActive={activePage === 'ai_assistant'}>✨ Asisten AI</NavButton>
-                </nav>
-                <main>
-                    {activePage === 'summary' && <SummaryPage />}
-                    {activePage === 'details' && <DetailPage />}
-                    {activePage === 'risks' && <RiskPage />}
-                    {activePage === 'ai_assistant' && <AiAssistantPage />}
-                </main>
-                <footer className="text-center mt-12 text-gray-500">
-                    <p>&copy; 2024 Proyeksi Investasi Drone Agraris. Data berdasarkan estimasi performa.</p>
-                </footer>
-            </div>
+        <div className="min-h-screen bg-gray-100 font-sans text-gray-800">
+            <nav className="bg-white shadow-lg sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-20">
+                        <div className="flex items-center">
+                            <span className="text-3xl font-bold text-blue-900">Analisa Bisnis Drone</span>
+                        </div>
+                        <div className="hidden md:flex items-center space-x-2">
+                            <NavButton onClick={() => setActivePage('summary')} isActive={activePage === 'summary'}>Ringkasan</NavButton>
+                            <NavButton onClick={() => setActivePage('details')} isActive={activePage === 'details'}>Analisis Rinci</NavButton>
+                            <NavButton onClick={() => setActivePage('risks')} isActive={activePage === 'risks'}>Manajemen Risiko</NavButton>
+                            <NavButton onClick={() => setActivePage('ai')} isActive={activePage === 'ai'}>Asisten AI</NavButton>
+                        </div>
+                         <div className="md:hidden flex items-center">
+                             <select onChange={(e) => setActivePage(e.target.value)} value={activePage} className="bg-blue-800 text-white p-2 rounded-md">
+                                 <option value="summary">Ringkasan</option>
+                                 <option value="details">Analisis Rinci</option>
+                                 <option value="risks">Manajemen Risiko</option>
+                                 <option value="ai">Asisten AI</option>
+                             </select>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                {renderPage()}
+            </main>
+
+            <footer className="bg-blue-900 text-white mt-12">
+                <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center">
+                    <p>&copy; 2024 Analisis Bisnis Drone. Dibuat untuk membantu pengambilan keputusan investasi.</p>
+                </div>
+            </footer>
         </div>
     );
-};
+}
 
 export default App;
