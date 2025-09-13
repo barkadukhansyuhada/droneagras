@@ -223,7 +223,7 @@ const CashflowSection: React.FC<{ title: string, cashData: any[], leasingData: a
   const komponen = useMemo(() => {
     const { biayaOperasional, profitKotor, skemaPembelian } = perUnitSummary;
     const cicilan = skemaPembelian?.leasing?.cicilanPerBulan ?? 0;
-    const bebanTetapProyek = Object.values(bebanProduksiBulanan || {}).reduce((a: number, b: number) => a + b, 0);
+    const bebanTetapProyek = Object.values(bebanProduksiBulanan || {}).reduce((a, b) => Number(a) + Number(b), 0) as number;
 
     const rows = [
       { nama: `Omzet (${vatInclusive ? 'Incl. PPN' : 'Excl. PPN'})`, cash: perUnitSummary.targetOmset, leasing: perUnitSummary.targetOmset },
