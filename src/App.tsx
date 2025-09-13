@@ -1,17 +1,17 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, AreaChart, Area, ComposedChart, Line } from 'recharts';
 
 // ==============================================
 // UTIL & UI SMALLS
 // ==============================================
-const formatCurrency = (value, compact = false) => {
+const formatCurrency = (value: number, compact = false): string => {
   if (typeof value !== 'number' || isNaN(value)) return 'Rp 0';
   if (compact && Math.abs(value) >= 1_000_000)
     return `Rp ${(value / 1_000_000).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Jt`;
   return `Rp ${Math.round(value).toLocaleString('id-ID')}`;
 };
 
-const NavButton = ({ children, onClick, isActive }) => (
+const NavButton: React.FC<{ children: React.ReactNode, onClick: () => void, isActive: boolean }> = ({ children, onClick, isActive }) => (
   <button
     onClick={onClick}
     className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-300 ${
@@ -22,14 +22,14 @@ const NavButton = ({ children, onClick, isActive }) => (
   </button>
 );
 
-const Toggle = ({ checked, onChange, label }) => (
+const Toggle: React.FC<{ checked: boolean, onChange: (checked: boolean) => void, label: string }> = ({ checked, onChange, label }) => (
   <label className="flex items-center space-x-2 select-none cursor-pointer">
     <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
     <span className="text-sm text-gray-700">{label}</span>
   </label>
 );
 
-const InfoTooltip = ({ text }) => {
+const InfoTooltip: React.FC<{ text: string }> = ({ text }) => {
   const [open, setOpen] = useState(false);
   return (
     <span
@@ -70,7 +70,7 @@ const SHARED_PRODUCTION_EXPENSES_MONTHLY = {
 const asumsiUmum = { 'Hari Kerja / Bulan': 22, 'Jam Kerja Efektif / Hari': '6 jam', 'Harga Borongan / Ha': 300_000 };
 
 // Helper: bentuk deret arus kas
-const makeCashflowSeries = (initial, monthly, months = 36) => {
+const makeCashflowSeries = (initial: number, monthly: number, months = 36): { bulan: number, arusKas: number, kumulatif: number }[] => {
   const out = [{ bulan: 1, arusKas: initial, kumulatif: initial }];
   for (let i = 0; i < months; i++) {
     const bulan = i + 2;
@@ -84,7 +84,7 @@ const makeCashflowSeries = (initial, monthly, months = 36) => {
 const DISCOUNT_RATE_PA = 0.18; // 18% p.a.
 const monthlyRate = DISCOUNT_RATE_PA / 12;
 
-function paybackFromCumulative(cumulArray) {
+function paybackFromCumulative(cumulArray: number[]): number | null {
   if (!Array.isArray(cumulArray)) return null;
   for (let i = 0; i < cumulArray.length; i++) {
     if (typeof cumulArray[i] === 'number' && cumulArray[i] >= 0) return i + 1; // bulan ke-(i+1)
@@ -92,7 +92,7 @@ function paybackFromCumulative(cumulArray) {
   return null;
 }
 
-function npv(rate, cashflows) {
+function npv(rate: number, cashflows: number[]): number {
   let v = 0;
   for (let t = 0; t < cashflows.length; t++) {
     v += cashflows[t] / Math.pow(1 + rate, t + 1); // aliran mulai t=1
@@ -100,7 +100,7 @@ function npv(rate, cashflows) {
   return v;
 }
 
-function irr(cashflows, guess = 0.1, maxIter = 100, tol = 1e-6) {
+function irr(cashflows: number[], guess = 0.1, maxIter = 100, tol = 1e-6): number | null {
   if (!cashflows || cashflows.length === 0) return null;
   let r = guess;
   for (let k = 0; k < maxIter; k++) {
@@ -190,7 +190,7 @@ const T100_DATA = {
 // ==============================================
 // VAT HELPERS (tidak mengubah perhitungan profitKotor existing)
 // ==============================================
-function splitVATFromAmount(amount, inclusive) {
+function splitVATFromAmount(amount: number, inclusive: boolean): { base: number, vat: number } {
   if (!inclusive) return { base: amount, vat: amount * VAT_RATE };
   const base = amount / (1 + VAT_RATE);
   return { base, vat: amount - base };
@@ -199,7 +199,7 @@ function splitVATFromAmount(amount, inclusive) {
 // ==============================================
 // VISUAL SECTIONS
 // ==============================================
-const CashflowSection = ({ title, cashData, leasingData, perUnitSummary, bebanProduksiBulanan, vatInclusive, applyVATToCashflow }) => {
+const CashflowSection: React.FC<{ title: string, cashData: any[], leasingData: any[], perUnitSummary: any, bebanProduksiBulanan: any, vatInclusive: boolean, applyVATToCashflow: boolean }> = ({ title, cashData, leasingData, perUnitSummary, bebanProduksiBulanan, vatInclusive, applyVATToCashflow }) => {
   const paybackCash = paybackFromCumulative(cashData.map((d) => d.kumulatif));
   const paybackLeasing = paybackFromCumulative(leasingData.map((d) => d.kumulatif));
 
@@ -223,7 +223,7 @@ const CashflowSection = ({ title, cashData, leasingData, perUnitSummary, bebanPr
   const komponen = useMemo(() => {
     const { biayaOperasional, profitKotor, skemaPembelian } = perUnitSummary;
     const cicilan = skemaPembelian?.leasing?.cicilanPerBulan ?? 0;
-    const bebanTetapProyek = Object.values(bebanProduksiBulanan || {}).reduce((a, b) => a + b, 0);
+    const bebanTetapProyek = Object.values(bebanProduksiBulanan || {}).reduce((a: number, b: number) => a + b, 0);
 
     const rows = [
       { nama: `Omzet (${vatInclusive ? 'Incl. PPN' : 'Excl. PPN'})`, cash: perUnitSummary.targetOmset, leasing: perUnitSummary.targetOmset },
@@ -264,7 +264,7 @@ const CashflowSection = ({ title, cashData, leasingData, perUnitSummary, bebanPr
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="bulan" />
           <YAxis tickFormatter={(v) => formatCurrency(v, true)} />
-          <Tooltip formatter={(v) => formatCurrency(v)} />
+          <Tooltip formatter={(v: number) => formatCurrency(v)} />
           <Legend />
           <Area type="monotone" dataKey="Kumulatif (Cash)" stroke="#1565c0" fill="#1565c0" fillOpacity={0.3} />
           <Area type="monotone" dataKey="Kumulatif (Leasing)" stroke="#ef6c00" fill="#ef6c00" fillOpacity={0.3} />
@@ -306,7 +306,7 @@ const CashflowSection = ({ title, cashData, leasingData, perUnitSummary, bebanPr
 };
 
 // Waterfall per unit
-const WaterfallSection = ({ title, omzet, biayaMap }) => {
+const WaterfallSection: React.FC<{ title: string, omzet: number, biayaMap: { [key: string]: number } }> = ({ title, omzet, biayaMap }) => {
   const steps = []; let cum = 0; cum += omzet; steps.push({ name: 'Omzet', base: 0, delta: omzet, end: cum, color: '#2ecc71', type: 'pos' });
   for (const [k, v] of Object.entries(biayaMap)) { const s = cum; cum -= v; const base = Math.min(s, cum); const delta = Math.abs(s - cum); steps.push({ name: k, base, delta, end: cum, color: '#e74c3c', type: 'neg' }); }
   steps.push({ name: 'Profit Kotor', base: 0, delta: cum, end: cum, color: '#3498db', type: 'total' });
@@ -318,10 +318,10 @@ const WaterfallSection = ({ title, omzet, biayaMap }) => {
         <ComposedChart data={data} margin={{ top: 16, right: 24, left: 24, bottom: 16 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
-          <YAxis tickFormatter={(v) => formatCurrency(v, true)} domain={[0, (dataMax) => dataMax * 1.15]} />
-          <Tooltip formatter={(val, key, { payload }) => (key === 'delta' ? `${payload.type === 'neg' ? '-' : '+'}${formatCurrency(payload.delta)}` : formatCurrency(val))} labelFormatter={(label) => <span style={{ fontWeight: 'bold' }}>{label}</span>} />
+          <YAxis tickFormatter={(v) => formatCurrency(v, true)} domain={[0, (dataMax: number) => dataMax * 1.15]} />
+          <Tooltip formatter={(val: number, key: string, { payload }: any) => (key === 'delta' ? `${payload.type === 'neg' ? '-' : '+'}${formatCurrency(payload.delta)}` : formatCurrency(val))} labelFormatter={(label: string) => <span style={{ fontWeight: 'bold' }}>{label}</span>} />
           <Bar dataKey="base" stackId="w" fill="rgba(0,0,0,0)" isAnimationActive={false} />
-          <Bar dataKey="delta" stackId="w" isAnimationActive={false} barCategoryGap={8}>{data.map((e, i) => (<Cell key={i} fill={e.color} />))}</Bar>
+          <Bar dataKey="delta" stackId="w" isAnimationActive={false}>{data.map((e, i) => (<Cell key={i} fill={e.color} />))}</Bar>
           <Line type="linear" dataKey="end" stroke="#546e7a" dot={{ r: 2 }} isAnimationActive={false} />
         </ComposedChart>
       </ResponsiveContainer>
@@ -330,7 +330,7 @@ const WaterfallSection = ({ title, omzet, biayaMap }) => {
   );
 };
 
-const ProjectWaterfallSection = ({ units = 3 }) => {
+const ProjectWaterfallSection: React.FC<{ units?: number }> = ({ units = 3 }) => {
   const totalOmzet = T100_DATA.targetOmset * units;
   const totalBiayaLangsung = T100_DATA.biayaOperasional * units;
   const totalProfitKotor = T100_DATA.profitKotor * units;
@@ -351,8 +351,8 @@ const ProjectWaterfallSection = ({ units = 3 }) => {
         <ComposedChart data={data} margin={{ top: 16, right: 24, left: 24, bottom: 16 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
-          <YAxis tickFormatter={(v) => formatCurrency(v, true)} domain={[0, (dataMax) => dataMax * 1.15]} />
-          <Tooltip formatter={(val, key, { payload }) => (key === 'delta' ? `${payload.type === 'neg' ? '-' : '+'}${formatCurrency(payload.delta)}` : formatCurrency(val))} />
+          <YAxis tickFormatter={(v) => formatCurrency(v, true)} domain={[0, (dataMax: number) => dataMax * 1.15]} />
+          <Tooltip formatter={(val: number, key: string, { payload }: any) => (key === 'delta' ? `${payload.type === 'neg' ? '-' : '+'}${formatCurrency(payload.delta)}` : formatCurrency(val))} />
           <Bar dataKey="base" stackId="w" fill="rgba(0,0,0,0)" isAnimationActive={false} />
           <Bar dataKey="delta" stackId="w" isAnimationActive={false}>{data.map((e, i) => (<Cell key={i} fill={e.color} />))}</Bar>
           <Line type="linear" dataKey="end" stroke="#546e7a" dot={{ r: 2 }} isAnimationActive={false} />
@@ -366,8 +366,8 @@ const ProjectWaterfallSection = ({ units = 3 }) => {
 // ==============================================
 // PAGES
 // ==============================================
-const SummaryPage = ({ vatInclusive, applyVATToCashflow }) => {
-  const MetricCard = ({ title, value, description, icon, tooltip }) => (
+const SummaryPage: React.FC<{ vatInclusive: boolean, applyVATToCashflow: boolean }> = ({ vatInclusive, applyVATToCashflow }) => {
+  const MetricCard: React.FC<{ title: string, value: string, description: string, icon: string, tooltip?: string }> = ({ title, value, description, icon, tooltip }) => (
     <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center transform hover:scale-105 transition-transform duration-300">
       <div className="text-5xl mb-3">{icon}</div>
       <h3 className="text-xl font-bold text-gray-700 flex items-center">{title}{tooltip && <InfoTooltip text={tooltip} />}</h3>
@@ -419,7 +419,7 @@ const SummaryPage = ({ vatInclusive, applyVATToCashflow }) => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis tickFormatter={(v) => formatCurrency(v, true)} />
-            <Tooltip formatter={(v) => formatCurrency(v)} />
+            <Tooltip formatter={(v: number) => formatCurrency(v)} />
             <Legend />
             <Bar dataKey="Target Omset" fill="#2ecc71" />
             <Bar dataKey="Biaya Operasional" fill="#e74c3c" />
@@ -435,7 +435,7 @@ const SummaryPage = ({ vatInclusive, applyVATToCashflow }) => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis tickFormatter={(v) => formatCurrency(v, true)} />
-            <Tooltip formatter={(v) => formatCurrency(v)} />
+            <Tooltip formatter={(v: number) => formatCurrency(v)} />
             <Legend />
             <Bar dataKey="Profit Kotor" fill="#3498db" />
             <Bar dataKey="Profit Bersih (Leasing)" fill="#f39c12" />
@@ -447,14 +447,14 @@ const SummaryPage = ({ vatInclusive, applyVATToCashflow }) => {
 };
 
 const DetailPage = () => {
-  const DetailCard = ({ title, children }) => (
+  const DetailCard: React.FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => (
     <div className="bg-white p-6 rounded-xl shadow-lg w-full">
       <h3 className="text-2xl font-bold text-blue-900 mb-4 border-b-2 border-blue-200 pb-2">{title}</h3>
       {children}
     </div>
   );
 
-  const BreakdownItem = ({ droneData }) => (
+  const BreakdownItem: React.FC<{ droneData: any }> = ({ droneData }) => (
     <div className="bg-gray-50 p-4 rounded-lg space-y-3">
       <h4 className="font-bold text-xl text-gray-800 text-center mb-2">{droneData.name}</h4>
       <div>
@@ -465,7 +465,7 @@ const DetailPage = () => {
       <div>
         <p className="font-semibold text-gray-600">Biaya Langsung per Unit:</p>
         <ul className="list-disc list-inside pl-4 text-sm space-y-1">
-          {Object.entries(droneData.biaya).map(([key, value]) => (<li key={key}><span className="font-semibold">{key}:</span> {formatCurrency(value)}</li>))}
+          {Object.entries(droneData.biaya).map(([key, value]) => (<li key={key}><span className="font-semibold">{key}:</span> {formatCurrency(value as number)}</li>))}
         </ul>
         <p className="text-lg font-bold text-red-700 pl-4 mt-1">= Total {formatCurrency(droneData.biayaOperasional)}</p>
       </div>
@@ -477,7 +477,7 @@ const DetailPage = () => {
     </div>
   );
 
-  const AcquisitionCostItem = ({ droneData }) => (
+  const AcquisitionCostItem: React.FC<{ droneData: any }> = ({ droneData }) => (
     <div className="bg-gray-50 p-4 rounded-lg space-y-4">
       <h4 className="font-bold text-xl text-gray-800 text-center mb-2">{droneData.name}</h4>
       <div>
@@ -500,7 +500,7 @@ const DetailPage = () => {
     </div>
   );
 
-  const ProductionExpenseCard = ({ label, monthlyMap }) => (
+  const ProductionExpenseCard: React.FC<{ label: string, monthlyMap: { [key: string]: number } }> = ({ label, monthlyMap }) => (
     <div className="bg-gray-50 p-4 rounded-lg">
       <h4 className="font-bold text-xl text-gray-800 mb-2">{label}</h4>
       <ul className="list-disc list-inside text-sm space-y-1">
@@ -532,7 +532,7 @@ const DetailPage = () => {
         <DetailCard title="Analisis Biaya Akuisisi per Unit (Cash vs. Leasing)"><div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><AcquisitionCostItem droneData={T50_DATA} /><AcquisitionCostItem droneData={T100_DATA} /></div></DetailCard>
         {/* ✨ Tambahan: Beban Produksi (biaya kantor & koordinasi, SAMA untuk T50 & T100) */}
         <DetailCard title="Beban Produksi Bulanan (Proyek)"><div className="grid grid-cols-1 lg:grid-cols-3 gap-6"><ProductionExpenseCard label="Skenario T50 (Per Bulan)" monthlyMap={T50_DATA.bebanProduksiBulanan} /><ProductionExpenseCard label="Skenario T100 (Per Bulan)" monthlyMap={T100_DATA.bebanProduksiBulanan} /><OverheadProjectCard /></div></DetailCard>
-        <DetailCard title="Asumsi Operasional Utama"><div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">{Object.entries(asumsiUmum).map(([key, value]) => (<div key={key} className="bg-gray-50 p-4 rounded-lg"><p className="text-gray-500 font-semibold">{key}</p><p className="text-blue-900 text-2xl font-bold">{key.includes('Harga') ? formatCurrency(value) : key.includes('Hari Kerja') ? `${value} hari` : value}</p></div>))}</div></DetailCard>
+        <DetailCard title="Asumsi Operasional Utama"><div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">{Object.entries(asumsiUmum).map(([key, value]) => (<div key={key} className="bg-gray-50 p-4 rounded-lg"><p className="text-gray-500 font-semibold">{key}</p><p className="text-blue-900 text-2xl font-bold">{key.includes('Harga') ? formatCurrency(value as number) : key.includes('Hari Kerja') ? `${value} hari` : value}</p></div>))}</div></DetailCard>
       </div>
     </>
   );
@@ -558,7 +558,7 @@ const RiskPage = () => {
     ]},
   ];
 
-  const RiskCard = ({ category, icon, points }) => (
+  const RiskCard: React.FC<{ category: string, icon: string, points: { risk: string, mitigation: string }[] }> = ({ category, icon, points }) => (
     <div className="bg-white p-6 rounded-xl shadow-lg w-full">
       <h3 className="text-2xl font-bold text-blue-900 mb-4 flex items-center"><span className="text-3xl mr-3">{icon}</span>{category}</h3>
       <div className="space-y-4">{points.map((p, i) => (<div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4"><div><p className="font-semibold text-gray-700">Risiko:</p><p className="text-gray-600">{p.risk}</p></div><div className="bg-blue-50 p-3 rounded-lg"><p className="font-semibold text-blue-800">Mitigasi:</p><p className="text-blue-700">{p.mitigation}</p></div></div>))}</div>
